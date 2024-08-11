@@ -1,1 +1,1 @@
-# power-wheelchair
+# powered-wheelchair
