@@ -34,6 +34,10 @@ const roundRadius = 1; // inch, amount of rounding to the seat
 // TODO: rename this ^ to something better
 const seatTaperAmmt = 2; // inch, difference between the front of the seat and the back
 
+const headRestHeight = 4.9; // inches
+const headRestWidth = 5.5; // inches
+
+
 const frameSize = 1.5; // inches (length of one side of cross-sectionally square frame pieces
 const frameBendRadius = 4; // inches (radius of the places where the frame does a 90 degree bend
 
@@ -280,14 +284,22 @@ function seatCushion(params, seatDepth, backSeatWidth) {
 // Creates the seat back of the chair
 function seatBack(params, backSeatWidth) {
   const radius = toMm(roundRadius);
-  let base = hull(circle({radius, center: [-toMm(backSeatWidth/2 * 0.85  - roundRadius), 0]}), // Bottom corners
-                  circle({radius, center: [toMm(backSeatWidth/2 * 0.85  - roundRadius), 0]}),  // "
-                  circle({radius, center: [-toMm(backSeatWidth/2  - roundRadius), toMm(params.seatBackHeight * 0.25)]}), // Middle "corners"
-                  circle({radius, center: [toMm(backSeatWidth/2  - roundRadius), toMm(params.seatBackHeight * 0.25)]}),  // "
-                  circle({radius, center: [-toMm(backSeatWidth/2 * 0.65  - roundRadius), toMm(params.seatBackHeight)]}), // Top corners
-                  circle({radius, center: [toMm(backSeatWidth/2 * 0.65 - roundRadius), toMm(params.seatBackHeight)]})    // "
+  // Seat back
+  let base = hull(circle({radius, center: [-toMm(backSeatWidth/2 - roundRadius), 0]}), // Bottom corners
+                  circle({radius, center: [toMm(backSeatWidth/2  - roundRadius), 0]}),  // "
+                  circle({radius, center: [-toMm(backSeatWidth/2  - roundRadius), toMm(params.seatBackHeight * 0.75)]}), // Middle "corners"
+                  circle({radius, center: [toMm(backSeatWidth/2  - roundRadius), toMm(params.seatBackHeight * 0.75)]}),  // "
+                  circle({radius, center: [-toMm(backSeatWidth/2 * 0.85  - roundRadius), toMm(params.seatBackHeight)]}), // Top corners
+                  circle({radius, center: [toMm(backSeatWidth/2 * 0.85 - roundRadius), toMm(params.seatBackHeight)]})    // "
   );
-  let seatBack = extrudeLinear({height: toMm(params.seatThick)}, base);
+  // Head rest
+  const headRestRadius = toMm(headRestHeight);
+  let base2 = hull(circle({radius: headRestRadius, center: [-toMm(headRestWidth - headRestHeight), toMm(params.seatBackHeight + headRestHeight)]}), // Bottom "corners"
+                   circle({radius: headRestRadius, center: [toMm(headRestWidth - headRestHeight), toMm(params.seatBackHeight + headRestHeight)]})   // "
+  
+  );
+  
+  let seatBack = extrudeLinear({height: toMm(params.seatThick)}, union(base, base2));
   
   return seatBack;
 }
@@ -307,7 +319,7 @@ function armRests(params, seatDepth, armRestDepth) {
   let controls = union(controlPanel, joyStick);
   
   let xOffset = params.hand == 1 ? toMm(params.seatWidth/2 + armRestWidth/2) : -toMm(params.seatWidth/2 + armRestWidth/2);
-  controls = translate([xOffset, toMm(controlPanelDepth * 0.45), toMm(frameSize*0.45)], controls);
+  controls = translate([xOffset, toMm(controlPanelDepth * 0.45), toMm(frameSize * 0.45)], controls);
   
   // Add control stick depending on handedness
    return union(leftArmRest, rightArmRest, controls);
@@ -357,6 +369,8 @@ function createChair(params, seatDepth, backSeatWidth, armRestHeight, armRestDep
   
   return chair;
 }
+
+
 
 
 // Calculates the correct offset to move all other elements so the driver wheel is positioned correctly
