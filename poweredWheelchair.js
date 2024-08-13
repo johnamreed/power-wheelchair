@@ -293,9 +293,9 @@ function seatBack(params, backSeatWidth) {
                   circle({radius, center: [toMm(backSeatWidth/2 * 0.85 - roundRadius), toMm(params.seatBackHeight)]})    // "
   );
   // Head rest
-  const headRestRadius = toMm(headRestHeight);
-  let base2 = hull(circle({radius: headRestRadius, center: [-toMm(headRestWidth - headRestHeight), toMm(params.seatBackHeight + headRestHeight)]}), // Bottom "corners"
-                   circle({radius: headRestRadius, center: [toMm(headRestWidth - headRestHeight), toMm(params.seatBackHeight + headRestHeight)]})   // "
+  const headRestRadius = toMm(headRestHeight/2);
+  let base2 = hull(circle({radius: headRestRadius, center: [-toMm(headRestWidth - headRestHeight), toMm(params.seatBackHeight + headRestHeight/2)]}), // Bottom "corners"
+                   circle({radius: headRestRadius, center: [toMm(headRestWidth - headRestHeight), toMm(params.seatBackHeight + headRestHeight/2)]})   // "
   
   );
   
