@@ -6,7 +6,7 @@ const { arc, star, circle, square, rectangle, polygon, triangle } = jscad.primit
 const { cube, cuboid, roundedCuboid, torus, cylinder, roundedCylinder, sphere } = jscad.primitives // 3D primitives
 const { rotate, rotateX, rotateZ, translate, translateY, translateZ, rotateY, mirrorX, mirrorY, translateX } = jscad.transforms // Transforms
 const { union, subtract } = jscad.booleans // Boolean operations
-const { hull, hullChain } = jscad.hulls // Hull operations 
+const { hull } = jscad.hulls // Hull operations
 const { extrudeLinear, extrudeRectangular } = jscad.extrusions // Extrusions
 const { colorize, colorNameToRgb } = jscad.colors // Colors
 const { degToRad } = jscad.utils // Utilities
@@ -15,13 +15,9 @@ const { degToRad } = jscad.utils // Utilities
 const inToMm = 25.4; // Conversion from inches to millimeters
 const segments = 32; // Number of segments per extrusion
 
-const mediumWheelDiameter = 7; // inches
-const smallWheelDiameter = 4; // inches
-
 const wheelThickness = 1.5; // (in.) wheel thickness
 const wheelGap = 1.5; // (in.) gap between the driver wheels and the body of the wheelchair
 const castorGap = 1; // (in.) distance between a wheel and its castor forks 
-
 
 // BIG WHEEL REDO PARAMS:
 const frontWheelOffset = 20; // inches, distance from the bight of the seat to the axle of the front wheels
@@ -32,7 +28,7 @@ const pinchInAmmt = 3; // inches, amount of distance closer together the front w
 const backWheelOffset = 15; // inches, distance from the bight of the seat to the axle of the back wheels
 const backCastorForkAngle = 0; // degrees, angle of castors on back wheel
 
-const clearance = 3; // inches
+const clearance = 3; // inches, space between the body and the ground. 
 
 const roundRadius = 1; // inch, amount of rounding to the seat
 // TODO: rename this to something better
@@ -175,7 +171,7 @@ function makeCastorWheel(params, type, angle) {
   // Translate up so base of wheel sits on the ground
   return translateZ(radius, union(wheel, castor));
  
-} // 
+} // makeCastorWheel()
 
 /* BASE */
 
@@ -195,75 +191,7 @@ function makeCastorWheel(params, type, angle) {
   let connector = cuboid({size: [toMm(params.seatWidth * 0.25 - 0.5), toMm(params.seatWidth * 0.25 - 0.5), toMm(1)], center: [0, -toMm(params.seatWidth * 0.25 - 1)/2, 0]});
   return union(rest, connector);
 }
-
-function wheelFrame(params, baseDepth) {
-   const castorHeight = params.mediumWheelDiameter/2 + castorGap;
-
-  // Create 2 front wheel casters
-  let leftWheel = translate([-toMm(params.seatWidth/2 - wheelGap), toMm(baseDepth * 0.5), -toMm(params.mediumWheelDiameter/4)], mediumWheel(params));
-  let rightWheel = translate([toMm(params.seatWidth/2 - wheelGap), toMm(baseDepth * 0.5), -toMm(params.mediumWheelDiameter/4)], mediumWheel(params));
-  
-  // Make a crossbar to connect the front wheels
-  let size = [toMm(params.seatWidth - (2 * wheelGap) + castorWidth), toMm(frameSize), toMm(frameSize)];
-  let yOffset = toMm( (baseDepth * 0.5) - ( (castorHeight + frameSize/2) * Math.sin(degToRad(castorForkAngle)) ) );
-  let zOffset = toMm( (castorHeight + frameSize/2) * Math.cos(degToRad(15)) - mediumWheelDiameter/4 );
-  let crossbar = translate([0, yOffset, zOffset], rotateX(degToRad(castorForkAngle), cuboid({size})));
- 
-  return union(leftWheel, rightWheel, crossbar);
-}
-
-function backWheelFrame(params, baseDepth) {
-  return translateY(toMm(baseDepth * 0.1), mirrorY(wheelFrame(params, baseDepth)));
-}
-
-function frontWheelFrame(params, baseDepth) {
-  let frame = wheelFrame(params, baseDepth);
-  let rest = translate([0, toMm(baseDepth * 0.5), 0], legRest(params));
-  return union(frame, rest);
-}
-
-function createBase(params, seatDepth, baseDepth) {
-  const castorHeight = params.mediumWheelDiameter/2 + castorGap;
-  
-  let size = [toMm(params.seatWidth - (wheelGap * 2)), toMm(baseDepth * 0.70), toMm(params.largeWheelDiameter/2)];
-  let bodyBottom = translateY(toMm(baseDepth * 0.05), cuboid({size}));
-  
-  // Cover over the top part of the body
-  size = [toMm(params.seatWidth - wheelGap), toMm(baseDepth * 0.8), toMm(1)];
-  let bodyTop = translate([0, 0, toMm(params.largeWheelDiameter/4)], cuboid({size}));
-  
-  let frontFrame = frontWheelFrame(params, baseDepth);
-  let backFrame = backWheelFrame(params, baseDepth);
-  
-  // Create the leg rest
-  // let rest = translate([0, toMm(baseDepth * 0.5), 0], legRest(params));
-  
-  // Add some more frame pieces to connect the front and back wheel frames
-  let center = [-toMm(params.seatWidth/2 - wheelGap), toMm(baseDepth * 0.05), toMm((castorHeight + frameSize/2) * Math.cos(degToRad(castorForkAngle)) - mediumWheelDiameter/4)];
-  let leftRail = cuboid({size: [toMm(frameSize), toMm(baseDepth * 0.85), toMm(frameSize)], center});
-  let rightRail = translateX(toMm(params.seatWidth - wheelGap * 2), leftRail);
-  
-  // Make support pillar for seat
-  let height = toMm(params.seatHeight - params.largeWheelDiameter/2);
-  let supportPillar = translate([0, 0, height/2], cylinder({radius: toMm(2), height, segments: 12}));
-  
-  // Account for Driver wheel position by moving everything else forward or backward
-  let base = union(bodyBottom, supportPillar, frontFrame, backFrame, leftRail, rightRail);
-  
-  if (params.driverWheelPos == 'back') {
-    base = translateY(toMm(seatDepth * 0.2), base);
-  } else if (params.driverWheelPos == 'middle') {
-    base = translateY(-toMm(seatDepth * 0.1), base);
-  } else if (params.driverWheelPos == 'front') {
-    base = translateY(-toMm(seatDepth * 0.4), base);
-  } 
-  
-  return translateZ(toMm(params.largeWheelDiameter/2), base);
-} */
-
-
-
-
+*/
 
 // Creates the front wheel part of the base
 function frontWheelFrame(params) {
@@ -304,15 +232,6 @@ function backWheelFrame(params) {
   
   
   let castorCap = translateX(-width/2, cube({size: toMm(wheelThickness + 0.4)}));
-  
- 
-  /* let angle = 15; // degrees 
-  size = [(width / 3) * Math.cos(degToRad(angle)) + toMm(wheelThickness), toMm(wheelThickness), toMm(wheelThickness)];
-  let slantBar = translateZ(height, rotateZ(degToRad(angle), cuboid({size})));
-  
-  let barFrame = union(translate([0, 0, 0], straightBar),
-                       translate([-width/3, 0, 0], slantBar), 
-                       translate([width/3, 0, 0], mirrorY(slantBar) )); */
                        
   let barFrame = translateZ(height, union(slantBar, mirrorX(slantBar), straightBar, castorCap, mirrorX(castorCap)));
   
@@ -431,10 +350,6 @@ function createChair(params, seatDepth, armRestHeight, armRestDepth) {
   let ZOffset = -(100 + toMm(params.seatThick));
   let chair = rotateX(degToRad(params.seatAngle), translate([0, YOffset, ZOffset], [frame, back, cushion, armRest]));
   // let chair = rotateX(degToRad(params.seatAngle), [frame, back, cushion, armRest]);
-  
-  
-  // Position the chair properly
-  
   
   
   /* // Position the chair depth
