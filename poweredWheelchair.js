@@ -31,7 +31,8 @@ const backCastorForkAngle = 0; // degrees, angle of castors on back wheel
 const clearance = 3; // inches, space between the body and the ground. 
 
 const roundRadius = 1; // inch, amount of rounding to the seat
-// TODO: rename this to something better
+// TODO: rename this ^ to something better
+const seatTaperAmmt = 2; // inch, difference between the front of the seat and the back
 
 const frameSize = 1.5; // inches (length of one side of cross-sectionally square frame pieces
 const frameBendRadius = 4; // inches (radius of the places where the frame does a 90 degree bend
@@ -61,8 +62,8 @@ function getParameterDefinitions() {
     {name: 'seatAngle', caption: 'Seat Angle (degrees):', type: 'float', initial: 0, min: 0, max: 15},
     {name: 'reclineAngle', caption: 'Recline Angle (degrees):', type: 'float', initial: 5, min: 0, max: 15},
     {name: 'hand', caption: 'Handedness:', type: 'radio', values: [0, 1], captions: ['L', 'R'], initial: 1}, 
-    {name: 'driverWheelOffset', caption: 'Driver Wheel Offset:', type: 'float', initial: 0, min: -5, max: 15},
-  //  {name: 'driverWheelPos', caption: 'Driver Wheel Position', type: 'choice', values: ['back', 'middle', 'front']},
+    // {name: 'driverWheelOffset', caption: 'Driver Wheel Offset:', type: 'float', initial: 0, min: -5, max: 15},
+    {name: 'driverWheelPos', caption: 'Driver Wheel Position', type: 'choice', values: [0, 1, 2], captions: ["Center Wheel Drive (CWD)", "Front Wheel Drive (FWD)", "Rear Wheel Drive (RWD)"]},
 
     // Wheel Parameters
     /* {name: 'backWheel', caption: 'Back Wheel:', type: 'choice', values: [0, 1, 2], captions: ['Small', 'Medium', 'None'], initial: 1},
@@ -261,7 +262,7 @@ function createBase(params, seatDepth, baseDepth) {
 /* SEAT */
 
 // Creates the seat cushion of the chair
-function seatCushion(params, seatDepth) {
+function seatCushion(params, seatDepth, backSeatWidth) {
   let radius = toMm(roundRadius); 
   // Define the coordinates of the edges of the seat, accounting for curvature
   // const x = toMm(params.seatWidth/2 - roundRadius);
@@ -269,22 +270,22 @@ function seatCushion(params, seatDepth) {
   // Create a 2D base to be extruded
   let base = hull(circle({radius, center: [toMm(params.seatWidth/2 - roundRadius), toMm(seatDepth/2 - roundRadius)]}),
                   circle({radius, center: [-toMm(params.seatWidth/2 - roundRadius), toMm(seatDepth/2 - roundRadius)]}),
-                  circle({radius, center: [toMm(params.seatWidth/2 - roundRadius), -toMm(seatDepth/2 - roundRadius)]}),
-                  circle({radius, center: [-toMm(params.seatWidth/2 - roundRadius), -toMm(seatDepth/2 - roundRadius)]})
+                  circle({radius, center: [toMm(backSeatWidth/2 - roundRadius), -toMm(seatDepth/2 - roundRadius)]}),
+                  circle({radius, center: [-toMm(backSeatWidth/2 - roundRadius), -toMm(seatDepth/2 - roundRadius)]})
   );
   // Extrude to the thickness of the seat
   return extrudeLinear({height: toMm(params.seatThick)}, base);
 } 
 
 // Creates the seat back of the chair
-function seatBack(params) {
+function seatBack(params, backSeatWidth) {
   const radius = toMm(roundRadius);
-  let base = hull(circle({radius, center: [-toMm(params.seatWidth/2 * 0.85  - roundRadius), 0]}), // Bottom corners
-                  circle({radius, center: [toMm(params.seatWidth/2 * 0.85  - roundRadius), 0]}),  // "
-                  circle({radius, center: [-toMm(params.seatWidth/2  - roundRadius), toMm(params.seatBackHeight * 0.25)]}), // Middle "corners"
-                  circle({radius, center: [toMm(params.seatWidth/2  - roundRadius), toMm(params.seatBackHeight * 0.25)]}),  // "
-                  circle({radius, center: [-toMm(params.seatWidth/2 * 0.65  - roundRadius), toMm(params.seatBackHeight)]}), // Top corners
-                  circle({radius, center: [toMm(params.seatWidth/2 * 0.65 - roundRadius), toMm(params.seatBackHeight)]})    // "
+  let base = hull(circle({radius, center: [-toMm(backSeatWidth/2 * 0.85  - roundRadius), 0]}), // Bottom corners
+                  circle({radius, center: [toMm(backSeatWidth/2 * 0.85  - roundRadius), 0]}),  // "
+                  circle({radius, center: [-toMm(backSeatWidth/2  - roundRadius), toMm(params.seatBackHeight * 0.25)]}), // Middle "corners"
+                  circle({radius, center: [toMm(backSeatWidth/2  - roundRadius), toMm(params.seatBackHeight * 0.25)]}),  // "
+                  circle({radius, center: [-toMm(backSeatWidth/2 * 0.65  - roundRadius), toMm(params.seatBackHeight)]}), // Top corners
+                  circle({radius, center: [toMm(backSeatWidth/2 * 0.65 - roundRadius), toMm(params.seatBackHeight)]})    // "
   );
   let seatBack = extrudeLinear({height: toMm(params.seatThick)}, base);
   
@@ -338,10 +339,10 @@ function seatFrame(params, seatDepth, armRestHeight) {
 }
 
 // Using helper functions above, create and position the chair of the wheelchair
-function createChair(params, seatDepth, armRestHeight, armRestDepth) {
+function createChair(params, seatDepth, backSeatWidth, armRestHeight, armRestDepth) {
   // Create the seat back, and apply the recline angle
-  let back = translate([0, toMm(-seatDepth/2), toMm(params.seatThick/2)], rotateX(degToRad(90 + params.reclineAngle), seatBack(params)));
-  let cushion = seatCushion(params, seatDepth);
+  let back = translate([0, toMm(-seatDepth/2), toMm(params.seatThick/2)], rotateX(degToRad(90 + params.reclineAngle), seatBack(params, backSeatWidth)));
+  let cushion = seatCushion(params, seatDepth, backSeatWidth);
   let frame = translate([0, -toMm(seatDepth/2 + frameSize), -toMm(frameSize/2)], seatFrame(params, seatDepth, armRestHeight));
   let armRest = translateZ(toMm(armRestHeight), armRests(params, seatDepth, armRestDepth));
   
@@ -351,46 +352,52 @@ function createChair(params, seatDepth, armRestHeight, armRestDepth) {
   let chair = rotateX(degToRad(params.seatAngle), translate([0, YOffset, ZOffset], [frame, back, cushion, armRest]));
   // let chair = rotateX(degToRad(params.seatAngle), [frame, back, cushion, armRest]);
   
-  
-  /* // Position the chair depth
-  if (params.driverWheelPos == 'back') {
-    chair = translateY(toMm(seatDepth * 0.1), chair);
-  } else if (params.driverWheelPos == 'middle') {
-    chair = translateY(toMm(-seatDepth * 0.2), chair);
-  } else if (params.driverWheelPos == 'front') {
-    chair = translateY(toMm(-seatDepth * 0.5), chair);
-  } */
-  
   // Position the chair vertically
-  chair = translate([0, -YOffset + toMm(seatDepth/2 - params.driverWheelOffset), -ZOffset + toMm(params.seatHeight)], chair);
+  chair = translate([0, -YOffset + toMm(seatDepth/2), -ZOffset + toMm(params.seatHeight)], chair);
   
   return chair;
 }
 
 
+// Calculates the correct offset to move all other elements so the driver wheel is positioned correctly
+function calculateOffset(params) {
+  switch(params.driverWheelPos) {
+    case 0:
+      return -(toMm(params.seatWidth/2) - toMm(1));
+    case 1:
+      return -(toMm(params.seatWidth) - toMm(3));
+    case 2:
+      return 0;
+  }
+} // calculateOffset()
+
+
 
 function main(params) {
-  /*let med = makeCastorWheel(params, 'medium');
-  let small = translateX(toMm(5), makeCastorWheel(params, 'small'));
-  return [med, small];*/
 
   // Dependent parameters
   const seatDepth = params.seatWidth;
   const baseDepth = seatDepth * 1.5;
   const armRestHeight = params.seatBackHeight * 0.5; // TODO: change to be in relation to back rest height
   const armRestDepth = params.seatWidth * 0.5 + 2 * frameSize;
+  const backSeatWidth = params.seatWidth - seatTaperAmmt; // The width of the seat at the back side
   
-  // return mediumWheel(params);
+  let chair = colorize(colorNameToRgb('lightgrey'), createChair(params, seatDepth, backSeatWidth, armRestHeight, armRestDepth));
+  let base = colorize(colorNameToRgb('lightgrey'), createBase(params, seatDepth, baseDepth));
   
-  let chair = colorize(colorNameToRgb('lightgrey'), createChair(params, seatDepth, armRestHeight, armRestDepth));
-  let base = colorize(colorNameToRgb('lightblue'), createBase(params, seatDepth, baseDepth));
+  // Adjust the chair and the base to account for the driver wheel position
+  let offset = calculateOffset(params);
+  
+  chair = translateY(offset, chair);
+  base = translateY(offset, base);
+  
   let driverWheels = colorize(colorNameToRgb('lightgreen'), createDriverWheels(params));
   
-  
+  // DEBUG: x axis and xy plane to tell that the wheelchair stays grounded
   let xaxis = cuboid({size: [toMm(100), 1, 1]});
-  let xyplane = cuboid({size: [toMm(100), toMm(100), 1]})
+  let xyplane = cuboid({size: [toMm(100), toMm(100), 1]});
   
-  return [chair, base, driverWheels, xaxis];
+  return [chair, base, driverWheels];
 }
 
 // Export the model and parameters to display on the screen
