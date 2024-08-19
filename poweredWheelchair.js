@@ -23,12 +23,12 @@ const castorGap = 1; // (in.) distance between a wheel and its castor forks
 const smallWheelDiameter = 4; // inches
 const mediumWheelDiameter = 8; // inches
 
-const frontWheelOffset = 20; // inches, distance from the bight of the seat to the axle of the front wheels
+const frontWheelOffset = 22; // inches, distance from the bight of the seat to the axle of the front wheels
 const frontCastorForkAngle = 15; // degrees, angle of castors on front wheel
 
-const pinchInAmmt = 3; // inches, amount of distance closer together the front wheels are than the driver wheels
+const pinchInAmmt = 3.5; // inches, amount of distance closer together the front wheels are than the driver wheels
 
-const backWheelOffset = 15; // inches, distance from the bight of the seat to the axle of the back wheels
+const backWheelOffset = 13; // inches, distance from the bight of the seat to the axle of the back wheels
 const backCastorForkAngle = 0; // degrees, angle of castors on back wheel
 
 const clearance = 3; // inches, space between the body and the ground. 
@@ -38,7 +38,7 @@ const roundRadius = 1; // inch, amount of rounding to the seat
 const seatTaperAmmt = 2; // inch, difference between the front of the seat and the back
 
 const headRestHeight = 4.9; // inches
-const headRestWidth = 5.5; // inches
+const headRestWidth = 6.5; // inches
 
 
 const frameSize = 1.5; // inches (length of one side of cross-sectionally square frame pieces
@@ -71,7 +71,6 @@ function getParameterDefinitions() {
     {name: 'hand', caption: 'Handedness:', type: 'radio', values: [0, 1], captions: ['L', 'R'], initial: 1}, 
     // {name: 'driverWheelOffset', caption: 'Driver Wheel Offset:', type: 'float', initial: 0, min: -5, max: 15},
     {name: 'driverWheelPos', caption: 'Driver Wheel Position', type: 'choice', values: [0, 1, 2], captions: ["Center Wheel Drive (CWD)", "Front Wheel Drive (FWD)", "Rear Wheel Drive (RWD)"]},
-
     // Wheel Parameters
     /* {name: 'backWheel', caption: 'Back Wheel:', type: 'choice', values: [0, 1, 2], captions: ['Small', 'Medium', 'None'], initial: 1},
     {name: 'frontWheel', caption: 'Front Wheel:', type: 'choice', values: [0, 1], captions: ['Small', 'Medium'], initial: 1},
@@ -294,9 +293,9 @@ function seatBack(params, backSeatWidth) {
                   circle({radius, center: [toMm(backSeatWidth/2 * 0.85 - roundRadius), toMm(params.seatBackHeight)]})    // "
   );
   // Head rest
-  const headRestRadius = toMm(headRestHeight);
-  let base2 = hull(circle({radius: headRestRadius, center: [-toMm(headRestWidth - headRestHeight), toMm(params.seatBackHeight + headRestHeight)]}), // Bottom "corners"
-                   circle({radius: headRestRadius, center: [toMm(headRestWidth - headRestHeight), toMm(params.seatBackHeight + headRestHeight)]})   // "
+  const headRestRadius = toMm(headRestHeight/2);
+  let base2 = hull(circle({radius: headRestRadius, center: [-toMm(headRestWidth - headRestHeight), toMm(params.seatBackHeight + headRestHeight/2 + 1)]}), // Bottom "corners"
+                   circle({radius: headRestRadius, center: [toMm(headRestWidth - headRestHeight), toMm(params.seatBackHeight + headRestHeight/2 + 1)]})   // "
   
   );
   
@@ -406,7 +405,7 @@ function main(params) {
   chair = translateY(offset, chair);
   base = translateY(offset, base);
   
-  let driverWheels = colorize(colorNameToRgb('lightgreen'), createDriverWheels(params));
+  let driverWheels = colorize(colorNameToRgb('grey'), createDriverWheels(params));
   
   // DEBUG: x axis and xy plane to tell that the wheelchair stays grounded
   let xaxis = cuboid({size: [toMm(100), 1, 1]});
