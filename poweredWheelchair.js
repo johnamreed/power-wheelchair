@@ -20,13 +20,16 @@ const wheelGap = 1.5; // (in.) gap between the driver wheels and the body of the
 const castorGap = 1; // (in.) distance between a wheel and its castor forks 
 
 // BIG WHEEL REDO PARAMS:
-// const frontWheelOffset = 20; // inches, distance from the bight of the seat to the axle of the front wheels
-// const frontCastorForkAngle = 15; // degrees, angle of castors on front wheel
+const smallWheelDiameter = 4; // inches
+const mediumWheelDiameter = 8; // inches
 
-// const pinchInAmmt = 3; // inches, amount of distance closer together the front wheels are than the driver wheels
+const frontWheelOffset = 20; // inches, distance from the bight of the seat to the axle of the front wheels
+const frontCastorForkAngle = 15; // degrees, angle of castors on front wheel
 
-// const backWheelOffset = 15; // inches, distance from the bight of the seat to the axle of the back wheels
-// const backCastorForkAngle = 0; // degrees, angle of castors on back wheel
+const pinchInAmmt = 3; // inches, amount of distance closer together the front wheels are than the driver wheels
+
+const backWheelOffset = 15; // inches, distance from the bight of the seat to the axle of the back wheels
+const backCastorForkAngle = 0; // degrees, angle of castors on back wheel
 
 const clearance = 3; // inches, space between the body and the ground. 
 
@@ -68,19 +71,8 @@ function getParameterDefinitions() {
     {name: 'hand', caption: 'Handedness:', type: 'radio', values: [0, 1], captions: ['L', 'R'], initial: 1}, 
     // {name: 'driverWheelOffset', caption: 'Driver Wheel Offset:', type: 'float', initial: 0, min: -5, max: 15},
     {name: 'driverWheelPos', caption: 'Driver Wheel Position', type: 'choice', values: [0, 1, 2], captions: ["Center Wheel Drive (CWD)", "Front Wheel Drive (FWD)", "Rear Wheel Drive (RWD)"]},
-    {name: 'largeWheelDiameter', caption: 'Driver Wheel Diameter:', type: 'float', initial: 12, min: 12, max: 14},
-    {name: 'mediumWheelDiameter', caption: 'Medium Wheel Diameter:', type: 'float', initial: 7, min: 6, max: 8},
-    {name: 'smallWheelDiameter', caption: 'Small Wheel Diameter:', type: 'float', initial: 3, min: 2, max: 5},  
+
     // Wheel Parameters
-    {name: 'frontWheelOffset', caption: 'Front Wheel Offset', type: 'float', initial: 20, min: 0, max: 40}, // Distance between front wheel center and bight
-    {name: 'frontCastorForkAngle', caption: 'Front Castor Fork Angle (deg) ', type: 'float', initial: 15, min: 0, max: 15},
-    {name: 'frontPinchInAmmt', caption: 'Front Wheel Pinch In', type: 'float', initial: 3, min: 0, max: 5},
-    
-    
-    {name: 'backWheelOffset', caption: 'Back Wheel Offset', type: 'float', initial: 15, min: 0, max: 30}, // Distance between back wheel center and bight
-    {name: 'backCastorForkAngle', caption: 'Back Castor Fork Angle (deg) ', type: 'float', initial: 0, min: 0, max: 0},
-    {name: 'backPinchInAmmt', caption: 'Back Wheel Pinch In', type: 'float', initial: 3, min: 0, max: 5},
-    
     /* {name: 'backWheel', caption: 'Back Wheel:', type: 'choice', values: [0, 1, 2], captions: ['Small', 'Medium', 'None'], initial: 1},
     {name: 'frontWheel', caption: 'Front Wheel:', type: 'choice', values: [0, 1], captions: ['Small', 'Medium'], initial: 1},
     */
@@ -91,7 +83,7 @@ function getParameterDefinitions() {
     // Seat Parameters
     {name: 'seatThick', caption: 'Seat Thickness:', type: 'float', initial: 4 },
     // Wheel Parameters
-    
+    {name: 'largeWheelDiameter', caption: 'Driver Wheel Diameter:', type: 'float', initial: 12, min: 12, max: 14},
     {name: 'legRestAngle', caption: 'Leg Rest Angle:', type: 'float', initial: 5, min: 0, max: 15},
     
   ];
@@ -146,7 +138,7 @@ function makeCastorWheel(params, type, angle) {
   
   let wheel;
   
-  const radius = (type == 'medium') ? toMm(params.mediumWheelDiameter/2) : toMm(params.smallWheelDiameter/2);
+  const radius = (type == 'medium') ? toMm(mediumWheelDiameter/2) : toMm(smallWheelDiameter/2);
   const castorWidth = (type == 'medium') ? toMm(1.2 * wheelThickness + 0.2) : toMm(wheelThickness + 0.2);
   const castorHeight = radius + toMm(castorGap);
   
@@ -156,7 +148,7 @@ function makeCastorWheel(params, type, angle) {
     let axle = rotateY(degToRad(90), cylinder({radius: radius/8, height: castorWidth, segments}));
     
     // Combine this axle with a simple wheel
-    wheel = union(simpleWheel(params.mediumWheelDiameter), axle);
+    wheel = union(simpleWheel(mediumWheelDiameter), axle);
   
   } else if (type == 'small') { // Otherwise, create a "small" wheel
     
@@ -210,9 +202,9 @@ function makeCastorWheel(params, type, angle) {
 // Creates the front wheel part of the base
 function frontWheelFrame(params) {
   // Create two wheels, place appropriately
-  let XOffset = toMm(params.seatWidth - params.frontPinchInAmmt)/2;
+  let XOffset = toMm(params.seatWidth - pinchInAmmt)/2;
   let type = 'small';
-  let wheel = makeCastorWheel(params, type, params.frontCastorForkAngle);
+  let wheel = makeCastorWheel(params, type, frontCastorForkAngle);
   // Place the wheels correctly
   let wheels = union(translateX(XOffset, wheel), translateX(-XOffset, wheel));
   
@@ -223,15 +215,15 @@ function frontWheelFrame(params) {
 // Creates the back wheel part of the base
 function backWheelFrame(params) {
   // Create two wheels
-  let width = toMm(params.seatWidth - params.backPinchInAmmt);
+  let width = toMm(params.seatWidth - pinchInAmmt);
   let type = 'medium';
-  let wheel = makeCastorWheel(params, type, -params.backCastorForkAngle);
+  let wheel = makeCastorWheel(params, type, -backCastorForkAngle);
   // Place the wheels correctly
   let wheels = union(translateX(width/2, wheel), translateX(-width/2, wheel));
   
   // Create a frame to hold the back two wheels
-  let radius = (type == 'medium') ? params.mediumWheelDiameter/2 : params.smallWheelDiameter/2;
-  let height = toMm(radius + (Math.cos(degToRad(params.backCastorForkAngle)) * (radius + wheelGap))  + 0.3);
+  let radius = (type == 'medium') ? mediumWheelDiameter/2 : smallWheelDiameter/2;
+  let height = toMm(radius + (Math.cos(degToRad(backCastorForkAngle)) * (radius + wheelGap))  + 0.3);
  
   /* let size = [width + toMm(wheelThickness), toMm(wheelThickness), toMm(wheelThickness)];
   let straightBar = translateZ(height, cuboid({size})); */
@@ -257,8 +249,8 @@ function backWheelFrame(params) {
 // Creates the base of the wheelchair
 function createBase(params, seatDepth, baseDepth) {
   
-  let frontFrame = translateY(toMm(params.frontWheelOffset), frontWheelFrame(params));
-  let backFrame = translateY(toMm(-params.backWheelOffset), backWheelFrame(params));
+  let frontFrame = translateY(toMm(frontWheelOffset), frontWheelFrame(params));
+  let backFrame = translateY(toMm(-backWheelOffset), backWheelFrame(params));
   
   // Translate the whole thing according to driver wheel offset
   return translateY(toMm(-params.driverWheelOffset), union(frontFrame, backFrame));
@@ -302,9 +294,9 @@ function seatBack(params, backSeatWidth) {
                   circle({radius, center: [toMm(backSeatWidth/2 * 0.85 - roundRadius), toMm(params.seatBackHeight)]})    // "
   );
   // Head rest
-  const headRestRadius = toMm(headRestHeight/2);
-  let base2 = hull(circle({radius: headRestRadius, center: [-toMm(headRestWidth - headRestHeight), toMm(params.seatBackHeight + headRestHeight/2)]}), // Bottom "corners"
-                   circle({radius: headRestRadius, center: [toMm(headRestWidth - headRestHeight), toMm(params.seatBackHeight + headRestHeight/2)]})   // "
+  const headRestRadius = toMm(headRestHeight);
+  let base2 = hull(circle({radius: headRestRadius, center: [-toMm(headRestWidth - headRestHeight), toMm(params.seatBackHeight + headRestHeight)]}), // Bottom "corners"
+                   circle({radius: headRestRadius, center: [toMm(headRestWidth - headRestHeight), toMm(params.seatBackHeight + headRestHeight)]})   // "
   
   );
   
