@@ -44,7 +44,7 @@ const headRestWidth = 6.5; // inches
 const frameSize = 1.5; // inches (length of one side of cross-sectionally square frame pieces
 const frameBendRadius = 4; // inches (radius of the places where the frame does a 90 degree bend
 
-const armRestWidth = 3; // inches
+const armRestWidth = 2.3; // inches
 const controlPanelDepth = 5; // inches
 const controlPanelAngle = 10; // degrees
 
@@ -180,7 +180,7 @@ function makeCastorWheel(params, type, angle) {
 
 /* BASE */
 
-/* function legRest(params) {
+function legRest(params) {
 
   // Create 2D shape of leg rest, and extrude
   let base = hull(circle({radius: toMm(1), center: [-toMm(params.seatWidth * 0.25 - 0.5), 0]}),
@@ -195,8 +195,7 @@ function makeCastorWheel(params, type, angle) {
   // Make a thingy to attach leg rest to body
   let connector = cuboid({size: [toMm(params.seatWidth * 0.25 - 0.5), toMm(params.seatWidth * 0.25 - 0.5), toMm(1)], center: [0, -toMm(params.seatWidth * 0.25 - 1)/2, 0]});
   return union(rest, connector);
-}
-*/
+} // legRest()
 
 // Creates the front wheel part of the base
 function frontWheelFrame(params) {
@@ -207,9 +206,10 @@ function frontWheelFrame(params) {
   // Place the wheels correctly
   let wheels = union(translateX(XOffset, wheel), translateX(-XOffset, wheel));
   
+  // TODO: insert legrest here
   
   return wheels; 
-}
+} // frontWheelFrame()
 
 // Creates the back wheel part of the base
 function backWheelFrame(params) {
@@ -242,7 +242,7 @@ function backWheelFrame(params) {
   
   return union(wheels, barFrame);
   
-}
+} // backWheelFrame()
 
 
 // Creates the base of the wheelchair
@@ -260,7 +260,7 @@ function createBase(params, seatDepth, baseDepth) {
   let base = cuboid({size, center});
   return base; */
 
-}
+} // createBase()
 
 
 /* SEAT */
@@ -279,7 +279,7 @@ function seatCushion(params, seatDepth, backSeatWidth) {
   );
   // Extrude to the thickness of the seat
   return extrudeLinear({height: toMm(params.seatThick)}, base);
-} 
+} // seatCushion()
 
 // Creates the seat back of the chair
 function seatBack(params, backSeatWidth) {
@@ -302,7 +302,7 @@ function seatBack(params, backSeatWidth) {
   let seatBack = extrudeLinear({height: toMm(params.seatThick)}, union(base, base2));
   
   return seatBack;
-}
+} // seatBack()
 
 // Creates the armrests of the chair
 function armRests(params, seatDepth, armRestDepth) {
@@ -323,11 +323,9 @@ function armRests(params, seatDepth, armRestDepth) {
   
   // Add control stick depending on handedness
    return union(leftArmRest, rightArmRest, controls);
-}
+} // armRests()
 
 function seatFrame(params, seatDepth, armRestHeight) {
-  // TODO: somehow make these bended sections of framing work
-  
   // Centered on bar at back of seat
   let size = [toMm(params.seatWidth + 2 * frameSize), toMm(frameSize), toMm(frameSize)];
   let backHoriz = cuboid({size});
@@ -348,7 +346,7 @@ function seatFrame(params, seatDepth, armRestHeight) {
   
   return union(frontHoriz, backHoriz, leftConnect, rightConnect, leftVert, rightVert);
   
-}
+} // seatFrame()
 
 // Using helper functions above, create and position the chair of the wheelchair
 function createChair(params, seatDepth, backSeatWidth, armRestHeight, armRestDepth) {
@@ -368,7 +366,7 @@ function createChair(params, seatDepth, backSeatWidth, armRestHeight, armRestDep
   chair = translate([0, -YOffset + toMm(seatDepth/2), -ZOffset + toMm(params.seatHeight)], chair);
   
   return chair;
-}
+} // createChair()
 
 
 
