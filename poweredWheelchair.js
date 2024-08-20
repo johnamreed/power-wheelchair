@@ -407,7 +407,7 @@ function main(params) {
   chair = translateY(offset, chair);
   base = translateY(offset, base);
   
-  let driverWheels = colorize(colorNameToRgb('grey'), createDriverWheels(params));
+  let driverWheels = colorize(colorNameToRgb('lightgrey'), createDriverWheels(params));
   
   // DEBUG: x axis and xy plane to tell that the wheelchair stays grounded
   let xaxis = cuboid({size: [toMm(100), 1, 1]});
