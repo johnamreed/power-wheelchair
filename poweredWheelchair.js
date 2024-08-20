@@ -31,13 +31,13 @@ const pinchInAmmt = 3.5; // inches, amount of distance closer together the front
 const backWheelOffset = 13; // inches, distance from the bight of the seat to the axle of the back wheels
 const backCastorForkAngle = 0; // degrees, angle of castors on back wheel
 
-const clearance = 3; // inches, space between the body and the ground. 
+const clearance = 4; // inches, space between the body and the ground. 
 
 const roundRadius = 1; // inch, amount of rounding to the seat
 // TODO: rename this ^ to something better
 const seatTaperAmmt = 2; // inch, difference between the front of the seat and the back
 
-const headRestHeight = 4.9; // inches
+const headRestHeight = 4.4; // inches
 const headRestWidth = 6.5; // inches
 
 
@@ -206,7 +206,6 @@ function frontWheelFrame(params) {
   // Place the wheels correctly
   let wheels = union(translateX(XOffset, wheel), translateX(-XOffset, wheel));
   
-  // TODO: insert legrest here
   
   return wheels; 
 } // frontWheelFrame()
@@ -251,16 +250,19 @@ function createBase(params, seatDepth, baseDepth) {
   let frontFrame = translateY(toMm(frontWheelOffset), frontWheelFrame(params));
   let backFrame = translateY(toMm(-backWheelOffset), backWheelFrame(params));
   
+  let size = [toMm(params.seatWidth - 2 * wheelGap), toMm(frontWheelOffset + backWheelOffset - 5), toMm(3)];
+  let center = [0, toMm(backWheelOffset/2), size[2]/2 + toMm(clearance)];
+  let body1 = cuboid({size, center});
+  
+  size = [toMm(params.seatWidth - 2 * wheelGap), toMm(frontWheelOffset + backWheelOffset - 5), toMm(3)];
+  center = [0, toMm(backWheelOffset/2 - 1.5), size[2]/2 + toMm(clearance + 3)];
+  let body2 = cuboid({size, center});
+  
   // Translate the whole thing according to driver wheel offset
-  return translateY(toMm(-params.driverWheelOffset), union(frontFrame, backFrame));
+  return union(frontFrame, backFrame, body1, body2);
 
- /*
-  let size = [toMm(params.seatWidth - 2 * wheelGap), toMm(baseDepth), toMm(params.largeWheelDiameter - clearance)];
-  let center = [0, 0, size[2]/2 + toMm(clearance)]
-  let base = cuboid({size, center});
-  return base; */
 
-} // createBase()
+}
 
 
 /* SEAT */
@@ -279,7 +281,7 @@ function seatCushion(params, seatDepth, backSeatWidth) {
   );
   // Extrude to the thickness of the seat
   return extrudeLinear({height: toMm(params.seatThick)}, base);
-} // seatCushion()
+} 
 
 // Creates the seat back of the chair
 function seatBack(params, backSeatWidth) {
@@ -302,7 +304,7 @@ function seatBack(params, backSeatWidth) {
   let seatBack = extrudeLinear({height: toMm(params.seatThick)}, union(base, base2));
   
   return seatBack;
-} // seatBack()
+}
 
 // Creates the armrests of the chair
 function armRests(params, seatDepth, armRestDepth) {
@@ -323,9 +325,11 @@ function armRests(params, seatDepth, armRestDepth) {
   
   // Add control stick depending on handedness
    return union(leftArmRest, rightArmRest, controls);
-} // armRests()
+}
 
 function seatFrame(params, seatDepth, armRestHeight) {
+  // TODO: somehow make these bended sections of framing work
+  
   // Centered on bar at back of seat
   let size = [toMm(params.seatWidth + 2 * frameSize), toMm(frameSize), toMm(frameSize)];
   let backHoriz = cuboid({size});
@@ -346,7 +350,7 @@ function seatFrame(params, seatDepth, armRestHeight) {
   
   return union(frontHoriz, backHoriz, leftConnect, rightConnect, leftVert, rightVert);
   
-} // seatFrame()
+}
 
 // Using helper functions above, create and position the chair of the wheelchair
 function createChair(params, seatDepth, backSeatWidth, armRestHeight, armRestDepth) {
@@ -366,7 +370,7 @@ function createChair(params, seatDepth, backSeatWidth, armRestHeight, armRestDep
   chair = translate([0, -YOffset + toMm(seatDepth/2), -ZOffset + toMm(params.seatHeight)], chair);
   
   return chair;
-} // createChair()
+}
 
 
 
