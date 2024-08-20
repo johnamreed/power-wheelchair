@@ -31,7 +31,7 @@ const pinchInAmmt = 3.5; // inches, amount of distance closer together the front
 const backWheelOffset = 13; // inches, distance from the bight of the seat to the axle of the back wheels
 const backCastorForkAngle = 0; // degrees, angle of castors on back wheel
 
-const clearance = 4; // inches, space between the body and the ground. 
+const clearance = 4.5; // inches, space between the body and the ground. 
 
 const roundRadius = 1; // inch, amount of rounding to the seat
 // TODO: rename this ^ to something better
@@ -254,12 +254,14 @@ function createBase(params, seatDepth, baseDepth) {
   let center = [0, toMm(backWheelOffset/2), size[2]/2 + toMm(clearance)];
   let body1 = cuboid({size, center});
   
-  size = [toMm(params.seatWidth - 2 * wheelGap), toMm(frontWheelOffset + backWheelOffset - 5), toMm(3)];
+  size = [toMm(params.seatWidth - 2 * wheelGap), toMm(frontWheelOffset + backWheelOffset - 5), toMm(3.55)];
   center = [0, toMm(backWheelOffset/2 - 1.5), size[2]/2 + toMm(clearance + 3)];
   let body2 = cuboid({size, center});
   
+  let pillar = cylinder({radius: toMm(2.5), height: toMm(params.seatHeight - clearance), center: [0, toMm(seatDepth/4), toMm(clearance + params.seatHeight/2)]});
+  
   // Translate the whole thing according to driver wheel offset
-  return union(frontFrame, backFrame, body1, body2);
+  return union(frontFrame, backFrame, body1, body2, pillar);
 
 
 }
