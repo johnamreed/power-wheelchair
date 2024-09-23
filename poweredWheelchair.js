@@ -272,9 +272,6 @@ function createBase(params, seatDepth, baseDepth) {
 // Creates the seat cushion of the chair
 function seatCushion(params, seatDepth, backSeatWidth) {
   let radius = toMm(roundRadius); 
-  // Define the coordinates of the edges of the seat, accounting for curvature
-  // const x = toMm(params.seatWidth/2 - roundRadius);
-  // const y = toMm(seatDepth/2 - roundRadius);
   // Create a 2D base to be extruded
   let base = hull(circle({radius, center: [toMm(params.seatWidth/2 - roundRadius), toMm(seatDepth/2 - roundRadius)]}),
                   circle({radius, center: [-toMm(params.seatWidth/2 - roundRadius), toMm(seatDepth/2 - roundRadius)]}),
